@@ -1,0 +1,20 @@
+---
+- name: Install Docker and Pull HammerDB Image
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Docker
+      package:
+        name: docker
+        state: latest
+
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull HammerDB Docker Image
+      docker_image:
+        name: "tpcorg/hammerdb"
+        source: pull
