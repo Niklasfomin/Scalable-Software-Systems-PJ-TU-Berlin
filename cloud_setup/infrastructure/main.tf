@@ -13,9 +13,9 @@ resource "aws_instance" "postgres_instance" {
   key_name               = var.ssh_key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_and_db.id]
 
-  provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.public_ip},' ${path.module}/benchmark_setup/setup_postgres.yaml --private-key ${var.private_key_path}"
-}
+#   provisioner "local-exec" {
+#     command = "ansible-playbook -i '${self.public_ip},' ${path.module}/benchmark_setup/setup_postgres.yaml --private-key ${var.private_key_path}"
+# }
 
 }
 
