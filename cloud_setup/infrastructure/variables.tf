@@ -1,11 +1,11 @@
 variable "ami_id" {
-  description = "ami-04272d3cdef346dfe"
+  description = "ami-0d118c6e63bcb554e"
   type        = string
 }
 
 variable "instance_type" {
   description = "EC2 Free Tier"
-  default     = "t2.micro"
+  default     = "c5.metal"
 }
 
 variable "ssh_key_name" {

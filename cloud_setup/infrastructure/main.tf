@@ -13,9 +13,9 @@ resource "aws_instance" "postgres_instance" {
   key_name               = var.ssh_key_name
   vpc_security_group_ids = [aws_security_group.allow_ssh_and_db.id]
 
-#   provisioner "local-exec" {
-#     command = "ansible-playbook -i '${self.public_ip},' ${path.module}/benchmark_setup/setup_postgres.yaml --private-key ${var.private_key_path}"
-# }
+   provisioner "local-exec" {
+     command = "ansible-playbook -i '${self.public_ip},' ${path.module}/benchmark_setup/setup_postgres.yaml --private-key ${var.private_key_path}"
+ }
 
 }
 
@@ -37,6 +37,13 @@ resource "aws_security_group" "allow_ssh_and_db" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -44,5 +51,3 @@ resource "aws_security_group" "allow_ssh_and_db" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
-
