@@ -1,3 +1,6 @@
-provider "aws" {
-  region = "eu-central-1" 
+provider "google" {
+  project = "ssws23"
+  region = "eu-west1"
+  zone = "europe-west1-b" 
+
 }
