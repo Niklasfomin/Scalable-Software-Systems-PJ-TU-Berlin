@@ -1,0 +1,5 @@
+-- psql -U postgres
+
+CREATE DATABASE tpcc;
+CREATE USER tpcc WITH PASSWORD 'tpcc';
+GRANT ALL PRIVILEGES ON DATABASE tpcc TO tpcc;
