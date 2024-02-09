@@ -1,7 +1,7 @@
 variable "instance_type" {
   description = "GCP instance type"
   type        = string
-  default     = "n1-standard-2"
+  default     = "n2d-standard-2"
 }
 
 variable "public_key_path" {

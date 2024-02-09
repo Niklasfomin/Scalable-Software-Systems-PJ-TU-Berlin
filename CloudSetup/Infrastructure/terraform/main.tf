@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 3.5"
+      version = "~> 4.0"
     }
   }
 }
@@ -10,11 +10,11 @@ terraform {
 resource "google_compute_instance" "postgres_instance" {
   name         = "pgsql-server"
   machine_type = var.instance_type
-  zone         = "europe-west1-b"
+  zone         = "northamerica-northeast1-b"
 
   boot_disk {
     initialize_params {
-      image = "centos-cloud/centos-7"
+      image = "ubuntu-os-cloud/ubuntu-2004-lts"
     }
   }
 
@@ -32,11 +32,11 @@ resource "google_compute_instance" "postgres_instance" {
 resource "google_compute_instance" "hammerdb_instance" {
   name         = "hammerdb-instance"
   machine_type = var.instance_type
-  zone         = "europe-west1-b"
+  zone         = "northamerica-northeast1-b"
 
   boot_disk {
     initialize_params {
-      image = "centos-cloud/centos-7"
+      image = "ubuntu-os-cloud/ubuntu-2004-lts"
     }
   }
 
@@ -50,25 +50,18 @@ resource "google_compute_instance" "hammerdb_instance" {
   }
 }
 
-resource "google_compute_firewall" "allow_ssh_and_db" {
-  name    = "allow-ssh-and-db"
+resource "google_compute_firewall" "allow_all_traffic" {
+  name    = "allow-all-traffic"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["22", "5432"]
+    ports    = ["0-65535"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
-}
-
-resource "google_compute_firewall" "allow_lxc_communication" {
-  name    = "allow-lxc-communication"
-  network = "default"
-
   allow {
-    protocol = "tcp"
-    ports    = ["8443"]
+    protocol = "udp"
+    ports    = ["0-65535"]
   }
 
   source_ranges = ["0.0.0.0/0"]
