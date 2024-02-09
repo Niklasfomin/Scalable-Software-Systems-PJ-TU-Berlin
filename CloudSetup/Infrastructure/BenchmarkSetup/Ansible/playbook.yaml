@@ -1,0 +1,68 @@
+- name: Setup HammerDB Server
+  hosts: hammerdb
+  become: yes
+  tasks:
+    - name: Download and install HammerDB
+      get_url:
+        url: https://github.com/TPC-Council/HammerDB/releases/download/v4.9/HammerDB-4.9-Linux.tar.gz
+        dest: /tmp/hammerdb.tar.gz
+
+    - name: Extract HammerDB package
+      unarchive:
+        src: /tmp/hammerdb.tar.gz
+        dest: /opt/
+        remote_src: yes
+
+    - name: Copy scripts to VM1
+      copy:
+        src: "{{ playbook_dir }}/Scripts/{{ item }}"
+        dest: /opt/
+        mode: '0755'
+      with_items:
+        - "orchestrate_bm.sh"
+
+- name: Setup Postgres Server with Docker, LXC and Golang env
+  hosts: postgres
+  become: yes
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Install LXC
+      apt:
+        name: lxc
+        state: present
+
+    - name: Install Golang
+      apt:
+        name: golang
+        state: present
+
+    - name: Pull latest PostgreSQL Docker image
+      docker_image:
+        name: postgres
+        source: pull
+        state: present
+
+    - name: Copy Go program and setup scripts to VM2
+      copy:
+        src: "{{ playbook_dir }}/Scripts/{{ item }}"
+        dest: /opt/
+        mode: '0755'
+      with_items:
+        - "setup_docker_pg.sh"
+        - "setup_lxc_pg.sh"
+    
+    - name: Copy interruptor application to SUT
+      copy:
+        src: "{{ playbook_dir }}/../InterruptorApplication/{{ item }}"
+        dest: /opt/
+        mode: '0755'
+      with_items:
+        - "exhaustor.go"
+   
+
+        
