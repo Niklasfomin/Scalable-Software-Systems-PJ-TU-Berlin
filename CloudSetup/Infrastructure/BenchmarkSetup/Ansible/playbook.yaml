@@ -55,6 +55,9 @@
       with_items:
         - "setup_docker_pg.sh"
         - "setup_lxc_pg.sh"
+        - "run_interruptor.sh"
+        - "resource_monitor.sh"
+        - "cleanup.sh"
     
     - name: Copy interruptor application to SUT
       copy:

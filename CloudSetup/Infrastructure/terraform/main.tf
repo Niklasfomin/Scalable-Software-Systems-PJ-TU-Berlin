@@ -10,7 +10,7 @@ terraform {
 resource "google_compute_instance" "postgres_instance" {
   name         = "pgsql-server"
   machine_type = var.instance_type
-  zone         = "northamerica-northeast1-b"
+  zone         = "europe-west1-b"
 
   boot_disk {
     initialize_params {
@@ -19,7 +19,7 @@ resource "google_compute_instance" "postgres_instance" {
   }
 
   network_interface {
-    network = "default"
+    network    = "default"
     access_config {}
   }
 
@@ -27,12 +27,11 @@ resource "google_compute_instance" "postgres_instance" {
     ssh-keys = "niklasfomin:${file(var.public_key_path)}"
   }
 }
-
 
 resource "google_compute_instance" "hammerdb_instance" {
   name         = "hammerdb-instance"
   machine_type = var.instance_type
-  zone         = "northamerica-northeast1-b"
+  zone         = "europe-west1-b"
 
   boot_disk {
     initialize_params {
@@ -41,7 +40,7 @@ resource "google_compute_instance" "hammerdb_instance" {
   }
 
   network_interface {
-    network = "default"
+    network    = "default"
     access_config {}
   }
 
@@ -50,19 +49,34 @@ resource "google_compute_instance" "hammerdb_instance" {
   }
 }
 
-resource "google_compute_firewall" "allow_all_traffic" {
-  name    = "allow-all-traffic"
+resource "google_compute_firewall" "allow_traffic" {
+  name    = "allow-traffic"
   network = "default"
 
   allow {
     protocol = "tcp"
-    ports    = ["0-65535"]
-  }
-
-  allow {
-    protocol = "udp"
-    ports    = ["0-65535"]
+    ports    = ["0-20000"]
   }
 
   source_ranges = ["0.0.0.0/0"]
 }
+
+resource "null_resource" "run_ansible" {
+  depends_on = [
+    google_compute_instance.postgres_instance,
+    google_compute_instance.hammerdb_instance,
+  ]
+
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
+  provisioner "local-exec" {
+  command = <<-EOT
+    printf "[postgres]\\n${google_compute_instance.postgres_instance.network_interface[0].access_config[0].nat_ip}\\n\\n[hammerdb]\\n${google_compute_instance.hammerdb_instance.network_interface[0].access_config[0].nat_ip}\\n" > ../BenchmarkSetup/Ansible/hosts.ini && \
+    ansible-playbook -i ../BenchmarkSetup/Ansible/hosts.ini ../BenchmarkSetup/Ansible/playbook.yaml --private-key=~/.ssh/google_compute_engine
+  EOT
+}
+
+}
+
