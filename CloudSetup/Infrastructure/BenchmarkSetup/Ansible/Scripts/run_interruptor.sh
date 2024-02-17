@@ -10,12 +10,12 @@ print_message() {
 
 run_interruptor() {
     print_message "Running the interruptor application..."
-    ./exhaustor.go
+    go run exhaustor.go
 }
 
 start_resource_monitor() {
     print_message "Starting the resource monitor script..."
-    ./ressource_monitor.sh &
+    ./resource_monitor.sh &
     RESOURCE_MONITOR_PID=$!
 }
 
@@ -26,31 +26,23 @@ stop_resource_monitor() {
     fi
 }
 
-main() {
+listen_for_traffic() {
     PORT=5432
 
     print_message "Listening on port $PORT for incoming database traffic..."
 
-    traffic_detected=false
-
     while true; do
-        # Check if port 5432 is open for connections
-        local ip_address=$(nc -zv localhost $PORT 2>&1 | awk '/open/ {print $5}')
-        if [ ! -z "$ip_address" ]; then
-            if ! $traffic_detected; then
-                print_message "Incoming database traffic detected from IP: $ip_address"
-                start_resource_monitor
-                traffic_detected=true
-            fi
-        else
-            if $traffic_detected; then
-                print_message "No database traffic detected on port $PORT. Stopping the resource monitor."
-                stop_resource_monitor
-                traffic_detected=false
-            fi
-        fi
-        sleep 10
+        sudo tcpdump -i any "tcp port $PORT" -n -c 1 -q >/dev/null 2>&1
+        print_message "Incoming traffic detected."
+        run_interruptor
+        start_resource_monitor
+        break
     done
+}
+
+main () {
+    sleep 245
+    listen_for_traffic
 }
 
 main

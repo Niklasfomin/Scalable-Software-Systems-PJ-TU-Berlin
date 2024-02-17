@@ -21,6 +21,13 @@
       with_items:
         - "orchestrate_bm.sh"
 
+    #- name: Pass the SUT IP Adress to the hammerdb Host
+    #  copy:
+    #    content: "{{ postgres_ip }}"
+    #    dest: "/opt/postgres_server_ip.txt"
+
+        # TODO: Add docker to the sudoers file 
+
 - name: Setup Postgres Server with Docker, LXC and Golang env
   hosts: postgres
   become: yes

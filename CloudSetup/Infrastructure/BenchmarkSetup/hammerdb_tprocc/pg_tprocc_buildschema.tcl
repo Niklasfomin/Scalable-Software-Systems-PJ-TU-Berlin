@@ -5,7 +5,7 @@ puts "SETTING CONFIGURATION"
 dbset db pg
 dbset bm TPC-C
 
-diset connection pg_host 127.0.0.1
+diset connection pg_host localhost
 diset connection pg_port 5432
 diset connection pg_sslmode prefer
 

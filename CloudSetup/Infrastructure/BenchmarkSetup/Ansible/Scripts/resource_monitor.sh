@@ -1,54 +1,77 @@
 #!/bin/bash
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-output_file="$SCRIPT_DIR/resource_metrics.csv"
+docker_stats_file="docker_container_stats.csv"
 
-touch "$output_file"
-sudo chmod 777 "$output_file"
+monitor_docker() {
+    local container_id=$1
+    echo "Monitoring Docker container $container_id. Press Ctrl+C to stop."
 
-detect_container_type() {
-    if command -v docker &> /dev/null && docker info &> /dev/null; then
-        echo "docker"
-    elif command -v lxc &> /dev/null && lxc info &> /dev/null; then
-        echo "lxc"
-    else
-        echo "unknown"
-    fi
-}
-
-log_docker_containers() {
-    sudo docker ps --format "{{.Names}}" | while read container_name; do
-        timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-        sudo docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" "$container_name" | tail -n +2 | awk -v ts="$timestamp" '{print ts, $0}' >> "$output_file"
-    done
-}
-
-log_lxc_containers() {
-    timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-    cgtop_output=$(systemd-cgtop --batch --depth=1 -p -n 1 | grep -E 'lxc.payload|machine.slice' | awk '{print $1, $2, $3, $4}')  
-    echo "$timestamp, $cgtop_output" >> "$output_file"
-}
-
-main() {
-    local container_type="$(detect_container_type)"
-
-    echo "Detected container type: $container_type"
-
-    if [ "$container_type" == "unknown" ]; then
-        echo "Error: Container type not detected. Make sure Docker or LXC is installed and running."
-        exit 1
-    fi
-
-    echo "Monitoring resource consumption..."
+    echo "Time,Container ID,CPU Usage (%),Memory Usage / Limit,Memory Usage (%)" > "$docker_stats_file"
 
     while true; do
-        if [ "$container_type" == "docker" ]; then
-            log_docker_containers
-        elif [ "$container_type" == "lxc" ]; then
-            log_lxc_containers
-        fi
-        sleep 60  
+        local current_time=$(date "+%Y-%m-%d %H:%M:%S")
+        local stats=$(docker stats --no-stream --format "{{.ID}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}}" $container_id)
+        echo "$current_time,$stats" >> "$docker_stats_file"
+        sleep 1  
     done
 }
 
-main
+
+lxc_stats_file="lxc_container_stats.csv"
+
+monitor_lxd() {
+    local container_name=$1
+
+    echo "Time,Container Name,CPU Usage (seconds),Memory Usage (current),Memory Usage (peak)" > "$lxc_stats_file"
+
+    echo "Monitoring LXD container $container_name. Press Ctrl+C to stop."
+    while true; do
+        
+        local info=$(lxc info "$container_name" --resources)
+        local cpu_usage=$(echo "$info" | grep 'CPU usage (in seconds)' | awk '{print $5}')
+        local memory_current=$(echo "$info" | grep 'Memory (current)' | awk '{print $3 $4}')
+        local memory_peak=$(echo "$info" | grep 'Memory (peak)' | awk '{print $3 $4}')
+        local current_time=$(date "+%Y-%m-%d %H:%M:%S")
+
+        echo "$current_time,$container_name,$cpu_usage,$memory_current,$memory_peak" >> "$lxc_stats_file"
+        
+        sleep 1  
+    done
+}
+
+# Detect and monitor
+lxd_container_name=$(lxc list -c ns --format csv | grep ",RUNNING" | cut -d',' -f1 | head -n 1)
+
+if [[ ! -z "$lxd_container_name" ]]; then
+    echo "LXD container detected: $lxd_container_name"
+    monitor_lxd "$lxd_container_name"
+else
+    echo "No LXD containers detected."
+fi
+
+
+
+detect_lxd() {
+    lxc list -c ns --format csv | grep ",RUNNING" | cut -d',' -f1 | head -n 1
+}
+
+detect_and_monitor() {
+    local docker_container_id=$(docker ps -q)
+    if [[ ! -z "$docker_container_id" ]]; then
+        echo "Docker container detected: $docker_container_id"
+        monitor_docker "$docker_container_id"
+        return
+    fi
+
+    local lxd_container_name=$(detect_lxd)
+    if [[ ! -z "$lxd_container_name" ]]; then
+        echo "LXD container detected: $lxd_container_name"
+        monitor_lxd "$lxd_container_name" 
+        return
+    fi
+
+    echo "No Docker or LXD containers detected."
+}
+
+
+detect_and_monitor
