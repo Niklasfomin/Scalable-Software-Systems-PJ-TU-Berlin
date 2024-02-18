@@ -15,6 +15,11 @@ sudo iptables -t nat -A POSTROUTING -o ens4 -j MASQUERADE
 sudo iptables -A FORWARD -i ens4 -o tap-fc-dev -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -A FORWARD -o ens4 -i tap-fc-dev -j ACCEPT
 
+# DB setup
+sudo iptables -t nat -A PREROUTING -p tcp --dport 5432 -j DNAT --to-destination 172.16.0.2:5432
+sudo iptables -A FORWARD -p tcp -d 172.16.0.2 --dport 5432 -j ACCEPT
+
+
 # Download installation wizard for aws firecracker
 git clone https://github.com/Schachte/Firecracker-VM-Wizard.git
 
@@ -41,10 +46,15 @@ tmux has-session -t FirecrackerVM 2>/dev/null && tmux kill-session -t Firecracke
 tmux new-session -d -s FirecrackerVM -n Setup 
 tmux split-window -h -t FirecrackerVM:Setup 'echo "Starting VM..."; sudo bash wizard <<EOF
 6
-EOF
-; read -p "Press enter to close..."' 
+EOF'
 
-tmux resize-pane -t FirecrackerVM:Setup -L 20
+sleep 4
+
+tmux resize-pane -t FirecrackerVM:Setup -L 5
 tmux select-pane -t FirecrackerVM:Setup.0
-tmux send-keys -t FirecrackerVM:Setup.0 'read -p "SSH now? (Press enter to continue...)"; clear; ssh -i ~/.ssh/hacker alpine@172.16.0.2' C-m
+
+tmux send-keys -t FirecrackerVM:Setup.0 'scp -i ~/.ssh/hacker /home/niklas/setup_fc_pgsql.sh alpine@172.16.0.2:~/' Enter 
+tmux send-keys -t FirecrackerVM:Setup.0 'ssh -i ~/.ssh/hacker alpine@172.16.0.2' Enter
+tmux send-keys -t FirecrackerVM:Setup.0 'chmod +x setup_fc_pgsql.sh' Enter
+tmux send-keys -t FirecrackerVM:Setup.0 './setup_fc_pgsql.sh' Enter
 tmux attach-session -t FirecrackerVM
