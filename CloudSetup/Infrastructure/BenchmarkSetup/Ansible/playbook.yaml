@@ -21,12 +21,16 @@
       with_items:
         - "orchestrate_bm.sh"
 
-    #- name: Pass the SUT IP Adress to the hammerdb Host
-    #  copy:
-    #    content: "{{ postgres_ip }}"
-    #    dest: "/opt/postgres_server_ip.txt"
+   # - name: Pass the SUT IP Adress to the hammerdb Host
+   #   copy:
+   #     content: "{{ postgres_ip }}"
+   #     dest: "/opt/postgres_server_ip.txt"
 
-        # TODO: Add docker to the sudoers file 
+    - name: Install PostgreSQL client
+      apt:
+        name: postgresql-client
+        state: present
+        update_cache: yes
 
 - name: Setup Postgres Server with Docker, LXC and Golang env
   hosts: postgres
@@ -41,6 +45,11 @@
     - name: Install LXC
       apt:
         name: lxc
+        state: present
+
+    - name: Install qemu-kvm
+      apt:
+        name: qemu-kvm
         state: present
 
     - name: Install Golang
@@ -65,6 +74,8 @@
         - "run_interruptor.sh"
         - "resource_monitor.sh"
         - "cleanup.sh"
+        - "setup_firecracker.sh"
+        - "setup_fc_pgsql.sh"
     
     - name: Copy interruptor application to SUT
       copy:
