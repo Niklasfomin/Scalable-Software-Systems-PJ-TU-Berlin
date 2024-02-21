@@ -9,10 +9,9 @@ diset connection pg_host localhost
 diset connection pg_port 5432
 diset connection pg_sslmode prefer
 
-set vu [ numberOfCPUs ]
-set warehouse [ expr {$vu * 5} ]
+set warehouse [ expr {$vu * 10} ]
 diset tpcc pg_count_ware $warehouse
-diset tpcc pg_num_vu $vu
+diset tpcc pg_num_vu 1
 diset tpcc pg_superuser postgres
 diset tpcc pg_superuserpass postgres
 diset tpcc pg_defaultdbase postgres

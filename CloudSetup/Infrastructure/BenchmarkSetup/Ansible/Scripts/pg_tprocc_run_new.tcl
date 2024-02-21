@@ -18,15 +18,15 @@ diset tpcc pg_pass tpcc
 diset tpcc pg_dbase tpcc
 diset tpcc pg_driver timed
 diset tpcc pg_total_iterations 10000000
-diset tpcc pg_rampup 2
-diset tpcc pg_duration 10
+diset tpcc pg_rampup 0
+diset tpcc pg_duration 15
 diset tpcc pg_vacuum true
 diset tpcc pg_timeprofile true
 diset tpcc pg_allwarehouse true
 
 loadscript
 puts "TEST STARTED"
-vuset vu vcpu
+#vuset vu vcpu
 vucreate
 tcstart
 tcstatus

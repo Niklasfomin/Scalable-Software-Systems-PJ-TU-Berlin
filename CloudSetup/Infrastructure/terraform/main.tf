@@ -39,9 +39,9 @@ resource "google_compute_instance" "postgres_instance" {
 }
 
 resource "google_compute_instance" "hammerdb_instance" {
-  name         = "hammerdb-instance"
+  name         = "hammerdb2-instance"
   machine_type = var.instance_type
-  zone         = "us-central1-b"
+  zone         = "us-central1-c"
 
   boot_disk {
     initialize_params {

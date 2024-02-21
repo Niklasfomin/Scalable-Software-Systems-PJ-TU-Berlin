@@ -1,4 +1,10 @@
-#!/b) {
+#!/bin/bash
+
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+print_message() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
 
@@ -31,13 +37,8 @@ if [ -z "$CONTAINER_NAME" ]; then
         "$PG_IMAGE"
 else
     print_message "Using existing PostgreSQL container: $CONTAINER_NAME"
-fiin/bash
 
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-print_message(
+fi
 
 print_message "Waiting for PostgreSQL to initialize..."
 sleep 5
@@ -56,7 +57,7 @@ print_message "PostgreSQL setup complete."
 
 sleep 3
 
-print_message "Initializing setup of interruptor application."
+print_message "Run the benchmark NOW! The Interruptor will be launched in 10 minutes..."
 
 ./run_interruptor.sh
 

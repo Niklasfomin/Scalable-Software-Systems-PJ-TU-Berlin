@@ -19,18 +19,34 @@
         dest: /opt/
         mode: '0755'
       with_items:
-        - "orchestrate_bm.sh"
+        - "run_benchmark.sh"
+        - "parse_transaction_times.sh"
+        - "run_results.sh"
+        
+    - name: Copy adjusted hammerDB files to VM1
+      copy:
+        src: "{{ playbook_dir }}/Scripts/{{ item }}"
+        dest: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc
+      with_items:
+        - "pg_tprocc_buildschema_new.tcl"
+        - "pg_tprocc_run.tcl_new.tcl"
+        - "pg_tprocc_deleteschema_new.tcl"
 
-   # - name: Pass the SUT IP Adress to the hammerdb Host
-   #   copy:
-   #     content: "{{ postgres_ip }}"
-   #     dest: "/opt/postgres_server_ip.txt"
+    - name: Pass the SUT IP Adress to the hammerdb Host
+      copy:
+        content: "{{ postgres_ip }}"
+        dest: "/opt/postgres_server_ip.txt"
 
     - name: Install PostgreSQL client
       apt:
         name: postgresql-client
         state: present
         update_cache: yes
+
+    # - name: Delete pg_tprocc.sh script
+    #   file:
+    #     path: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc/pg_tprocc.sh
+    #     state: absent
 
 - name: Setup Postgres Server with Docker, LXC and Golang env
   hosts: postgres

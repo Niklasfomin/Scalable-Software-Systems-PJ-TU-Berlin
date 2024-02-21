@@ -9,9 +9,12 @@ print_message() {
 }
 
 # Variables
-SUT_IP=$(cat ~/opt/postgres_server_ip.txt)
+SUT_IP=$(cat /opt/postgres_server_ip.txt)
 #SCRIPTS_DIR="HammerDB-4.9/scripts/tcl/postgres/tprocc/"
-SCRIPTS=("pg_tprocc_buildschema.tcl" "pg_tprocc_deleteschema.tcl" "pg_tprocc_run")
+SCRIPTS=("pg_tprocc_buildschema.tcl" "pg_tprocc_deleteschema.tcl" "pg_tprocc_run.tcl")
+TIME_DIR=" ../../../../config"
+TIME_FILE="generic.xml"
+TIME_PROF="etprof"
 
 print_message "Setting up benchmark engine..."
 
@@ -24,10 +27,12 @@ print_message "Detected the following SUT IP Adress: $SUT_IP"
 print_message "Pinging target host to verify connectivity..."
 
 if ping -c 4 $SUT_IP > /dev/null 2>&1; then
-    print_message "Server reachable & ready for benchmark run"
+    print_message "Server reachable & ready for benchmark run!"
 else 
     print_message "Ping failed...Server not reachable..."
 fi
+
+sleep 3
 
 print_message "Checking if postgres-server is reachable..."
 
@@ -45,12 +50,37 @@ for script in "${SCRIPTS[@]}"; do
     sed -i "s/localhost/$SUT_IP/g" "$script"
 done
 
+# Set correct amound of virtual users TODO check if that works!!!
+# sed -i "s/set vu [ numberOfCPUs ]//g" "pg_tprocc_buildschema.tcl"
+# sed -i "s/diset tpcc pg_num_vu $vu/diset tpcc pg_num_vu 1/g" "pg_tprocc_buildschema.tcl"
+
+# Set benchmark duration
+# sed -i "s/diset tpcc pg_rampup 2/diset tpcc pg_rampup 0/g" "pg_tprocc_run.tcl"
+# sed -i "s/diset tpcc pg_duration 10/diset tpcc pg_duration 15/g" "pg_tprocc_run.tcl" 
+
+# Set rampup duration to 0
+
 print_message "TCL scripts are updated successfully!"
 
-sleep 2
+sleep 3
 
-sudo export TMP=`pwd`/TMP
-sudo mkdir -p $TMP
+print_message "Setting TimeProfile for upcoming benchmark run. NOTE: Profile needs to be selected before first run!!!"
+
+cd $TIME_DIR
+
+print_message "Changing Time Config..."
+
+sed -i "s/xtprof/$TIME_PROF/g" "$TIME_FILE"
+
+print_message "etprof is successfully set as time profile."
+
+# <xt_unique_log_name>0 in case log is nowhere i need to substitute 0 with 1 using sed
+sleep 5
+
+cd ..
+
+export TMP=`pwd`/TMP
+mkdir -p $TMP
 
 print_message "BUILD HAMMERDB SCHEMA"
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"

@@ -1,6 +1,8 @@
 #!/bin/bash
 
 docker_stats_file="docker_container_stats.csv"
+firecracker_stats_file="firecracker_stats.csv"
+lxc_stats_file="lxc_container_stats.csv"
 
 monitor_docker() {
     local container_id=$1
@@ -12,12 +14,10 @@ monitor_docker() {
         local current_time=$(date "+%Y-%m-%d %H:%M:%S")
         local stats=$(docker stats --no-stream --format "{{.ID}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}}" $container_id)
         echo "$current_time,$stats" >> "$docker_stats_file"
-        sleep 1  
+        sleep 2  
     done
 }
 
-
-lxc_stats_file="lxc_container_stats.csv"
 
 monitor_lxd() {
     local container_name=$1
@@ -35,11 +35,11 @@ monitor_lxd() {
 
         echo "$current_time,$container_name,$cpu_usage,$memory_current,$memory_peak" >> "$lxc_stats_file"
         
-        sleep 1  
+        sleep 2  
     done
 }
 
-# Detect and monitor
+
 lxd_container_name=$(lxc list -c ns --format csv | grep ",RUNNING" | cut -d',' -f1 | head -n 1)
 
 if [[ ! -z "$lxd_container_name" ]]; then
@@ -50,9 +50,23 @@ else
 fi
 
 
-
 detect_lxd() {
     lxc list -c ns --format csv | grep ",RUNNING" | cut -d',' -f1 | head -n 1
+}
+
+monitor_firecracker() {
+    echo "Time,CPU Usage (%),Memory Usage (KB),Memory Usage (%)" > "$firecracker_stats_file"
+    echo "Monitoring system resources. Press Ctrl+C to stop."
+    while true; do
+        local current_time=$(date "+%Y-%m-%d %H:%M:%S")
+        local cpu_usage=$(top -b -n 2 -d 1 | grep "Cpu(s)" | tail -n 1 | awk '{print 100 - $8}')
+        local mem_usage=$(free | grep Mem | awk '{print $3}')
+        local mem_total=$(free | grep Mem | awk '{print $2}')
+        local mem_usage_perc=$(awk "BEGIN {print ($mem_usage/$mem_total)*100}")
+        
+        echo "$current_time,$cpu_usage,$mem_usage,$mem_usage_perc" >> "$resource_stats_file"
+        sleep 2  
+    done
 }
 
 detect_and_monitor() {
@@ -66,12 +80,12 @@ detect_and_monitor() {
     local lxd_container_name=$(detect_lxd)
     if [[ ! -z "$lxd_container_name" ]]; then
         echo "LXD container detected: $lxd_container_name"
-        monitor_lxd "$lxd_container_name" 
+        monitor_lxd "$lxd_container_name"
         return
     fi
 
-    echo "No Docker or LXD containers detected."
+    echo "No Docker or LXD containers detected, so Firecracker must be running."
+    monitor_firecracker
 }
-
 
 detect_and_monitor

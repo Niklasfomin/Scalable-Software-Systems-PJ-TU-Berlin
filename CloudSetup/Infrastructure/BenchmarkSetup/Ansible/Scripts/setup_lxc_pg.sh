@@ -66,6 +66,6 @@ print_message "PostgreSQL LXC setup complete."
 
 sleep 3
 
-print_message "Initializing setup of interruptor application."
+print_message "Run the benchmark NOW! The Interruptor will be launched in 10 minutes"
 
 ./run_interruptor.sh

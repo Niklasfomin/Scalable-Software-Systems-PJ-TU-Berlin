@@ -1,6 +1,7 @@
 package main
 
 import (
+    "fmt"
     "log"
     "math"
     "runtime"
@@ -17,12 +18,10 @@ func fibonacci(n int) int {
 
 func memoryIntensiveTask(wg *sync.WaitGroup, done <-chan bool) {
     defer wg.Done()
-    log.Println("Starting memory intensive task")
     iterations := 0
     for {
         select {
         case <-done:
-            log.Println("Memory intensive task done after iterations:", iterations)
             return
         default:
             size := 1000000 
@@ -32,7 +31,6 @@ func memoryIntensiveTask(wg *sync.WaitGroup, done <-chan bool) {
             }
             iterations++
             if iterations % 100 == 0 {
-                log.Printf("Memory intensive task ongoing, iterations: %d\n", iterations)
             }
         }
     }
@@ -40,18 +38,15 @@ func memoryIntensiveTask(wg *sync.WaitGroup, done <-chan bool) {
 
 func calculatePi(wg *sync.WaitGroup, done <-chan bool) {
     defer wg.Done()
-    log.Println("Starting Pi calculation")
     var pi float64
     iterations := 0
     for {
         pi += math.Pow(-1, float64(iterations)) / (2*float64(iterations) + 1)
         iterations++
         if iterations % 1000000 == 0 {
-            log.Printf("Pi calculation ongoing, iterations: %d, current Pi approximation: %f\n", iterations, 4*pi)
         }
         select {
         case <-done:
-            log.Println("Pi calculation done, final Pi approximation:", 4*pi)
             return
         default:
         }
@@ -60,7 +55,6 @@ func calculatePi(wg *sync.WaitGroup, done <-chan bool) {
 
 func matrixMultiplication(wg *sync.WaitGroup, done <-chan bool) {
     defer wg.Done()
-    log.Println("Starting matrix multiplication")
     const size = 100
     a := make([][]float64, size)
     b := make([][]float64, size)
@@ -87,11 +81,9 @@ func matrixMultiplication(wg *sync.WaitGroup, done <-chan bool) {
         }
         iterations++
         if iterations % 10 == 0 {
-            log.Printf("Matrix multiplication ongoing, iterations: %d\n", iterations)
         }
         select {
         case <-done:
-            log.Println("Matrix multiplication done after iterations:", iterations)
             return
         default:
          
@@ -101,7 +93,6 @@ func matrixMultiplication(wg *sync.WaitGroup, done <-chan bool) {
 
 func memcopy(wg *sync.WaitGroup, done <-chan bool) {
     defer wg.Done()
-    log.Println("Starting memory copy operation")
     const bufferSize = 1024 * 1024 // 1MB buffer
     src := make([]byte, bufferSize)
     dest := make([]byte, bufferSize)
@@ -110,11 +101,9 @@ func memcopy(wg *sync.WaitGroup, done <-chan bool) {
         copy(dest, src)
         iterations++
         if iterations % 10000 == 0 {
-            log.Printf("Memcopy operation ongoing, iterations: %d\n", iterations)
         }
         select {
         case <-done:
-            log.Println("Memcopy operation done after iterations:", iterations)
             return
         default:
 
@@ -138,11 +127,20 @@ func main() {
         go task(&wg, done)
     }
 
-    // Timer to stop tasks after 5 minutes
-    time.AfterFunc(5*time.Minute, func() {
+    go func() {
+        timer := time.NewTicker(1 * time.Second)
+        endTime := time.Now().Add(5 * time.Minute)
+        for now := range timer.C {
+            if now.After(endTime) {
+                timer.Stop()
+                break
+            }
+            fmt.Printf("\rInterruptor Application will be running for: %s", endTime.Sub(now).Round(time.Second).String())
+        }
+        fmt.Println("\nTimer ended, stopping tasks.")
         close(done)
-    })
+    }()
 
-    wg.Wait() 
-    log.Println("Stress test completed")
+    wg.Wait()
+    fmt.Println("Stress test completed")
 }

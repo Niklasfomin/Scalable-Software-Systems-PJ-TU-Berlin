@@ -2,6 +2,8 @@
 
 sudo apk update
 
+sudo apk add vim
+
 sudo mkdir -p /tmp
 
 sudo chmod 1777 /tmp
@@ -21,10 +23,11 @@ fi
 sudo -u postgres initdb -D /var/lib/postgresql/data
 
 sudo sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/postgresql.conf
-
+echo "host all all 0.0.0.0/0 md5" | sudo tee -a /var/lib/postgresql/data/pg_hba.conf
 sudo rc-service postgresql restart
 
 sudo -u postgres psql <<EOF
+ALTER USER postgres WITH PASSWORD 'postgres';
 -- Create new database
 CREATE DATABASE tpcc;
 
