@@ -57,6 +57,7 @@ resource "google_compute_instance" "hammerdb_instance" {
   metadata = {
     ssh-keys = "niklasfomin:${file(var.public_key_path)}"
   }
+
 }
 
 resource "google_compute_firewall" "allow_traffic" {
@@ -80,9 +81,9 @@ resource "null_resource" "run_ansible" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      sleep 5 && \
+      sleep 20 && \
       printf "[postgres]\\n${google_compute_instance.postgres_instance.network_interface[0].access_config[0].nat_ip}\\n\\n[hammerdb]\\n${google_compute_instance.hammerdb_instance.network_interface[0].access_config[0].nat_ip}\\n" > ../BenchmarkSetup/Ansible/hosts.ini && \
-      ansible-playbook -i ../BenchmarkSetup/Ansible/hosts.ini ../BenchmarkSetup/Ansible/playbook.yaml --extra-vars "postgres_ip=${google_compute_instance.postgres_instance.network_interface[0].access_config[0].nat_ip}"
+      ansible-playbook -i ../BenchmarkSetup/Ansible/hosts.ini ../BenchmarkSetup/Ansible/playbook.yaml --extra-vars "postgres_ip=${google_compute_instance.postgres_instance.network_interface[0].access_config[0].nat_ip} hammerDB_ip=${google_compute_instance.hammerdb_instance.network_interface[0].access_config[0].nat_ip}"
     EOT
   }
 }
