@@ -16,6 +16,8 @@ TIME_DIR=" ../../../../config"
 TIME_FILE="generic.xml"
 TIME_PROF="etprof"
 
+print_message "CAUTION: Terminal from HammerDB is outputted!"
+
 print_message "Setting up benchmark engine..."
 
 sleep 3
@@ -37,7 +39,7 @@ sleep 3
 print_message "Checking if postgres-server is reachable..."
 
 if nc -zvw3 $SUT_IP 5432; then
-    print_message "Postgres is up&running, ready for benchmark run."
+    print_message "Postgres is running, ready for benchmark run."
 else
     print_message "Ping failed. Verify, if Postgres is correctly setup..."
 fi
