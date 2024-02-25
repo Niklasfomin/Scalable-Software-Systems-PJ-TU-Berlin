@@ -19,7 +19,6 @@
         dest: /opt/
         mode: '0755'
       with_items:
-        - "run_benchmark.sh"
         - "parse_transaction_times.sh"
         - "run_results.sh"
         
@@ -29,8 +28,23 @@
         dest: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc
       with_items:
         - "pg_tprocc_buildschema_new.tcl"
-        - "pg_tprocc_run.tcl_new.tcl"
+        - "pg_tprocc_run_new.tcl"
         - "pg_tprocc_deleteschema_new.tcl"
+        - "run_benchmark.sh"
+
+    - name: Copy adjusted hammerDB timeprofile module to VM1
+      copy:
+        src: "{{ playbook_dir }}/Scripts/{{ item }}"
+        dest: /opt/HammerDB-4.9/modules
+      with_items:
+        - "etprof-1.1.tm"
+        
+    - name: Copy adjusted hammerDB files to VM1
+      copy:
+        src: "{{ playbook_dir }}/Scripts/{{ item }}"
+        dest: /opt/HammerDB-4.9/modules
+      with_items:
+        - "etprof-1.1.tm"
 
     - name: Pass the SUT IP Adress to the hammerdb Host
       copy:
@@ -67,11 +81,20 @@
       apt:
         name: qemu-kvm
         state: present
+    - name: Install dialog
+      apt:
+        name: dialog
+        state: present
 
     - name: Install Golang
       apt:
         name: golang
         state: present
+
+    - name: Pass the Benchmark Server IP Adress to the SUT-Server
+      copy:
+        content: "{{ hammerDB_ip }}"
+        dest: "/opt/hammerDB_server_ip.txt"
 
     - name: Pull latest PostgreSQL Docker image
       docker_image:
@@ -92,6 +115,7 @@
         - "cleanup.sh"
         - "setup_firecracker.sh"
         - "setup_fc_pgsql.sh"
+        - "runExperiment.sh"
     
     - name: Copy interruptor application to SUT
       copy:
