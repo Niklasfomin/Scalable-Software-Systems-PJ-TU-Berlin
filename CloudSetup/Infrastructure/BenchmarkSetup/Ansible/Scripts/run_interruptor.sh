@@ -9,6 +9,7 @@ print_message() {
 }
 
 run_interruptor() {
+    sleep 300
     print_message "Running the interruptor application..."
     go run exhaustor.go
 }
@@ -35,7 +36,6 @@ listen_for_traffic() {
         sudo tcpdump -i any "tcp port $PORT" -n -c 1 -q >/dev/null 2>&1
         print_message "Incoming traffic detected."
         start_resource_monitor
-        sleep 300
         run_interruptor
         break
     done
@@ -55,7 +55,8 @@ stop_monitor() {
 }
 
 main () {
-    sleep 245
+    print_message "Script Running"
+    sleep 300
     listen_for_traffic
     stop_monitor
 }
