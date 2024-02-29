@@ -19,6 +19,7 @@ PG_USER="postgres"
 PG_PWD="postgres"
 DB_NAME="postgres"
 PG_PORT="5432"
+hammerDB_IP=$(cat /opt/hammerDB_server_ip.txt)
 
 print_message "Initializing LXD..."
 
@@ -66,6 +67,27 @@ print_message "PostgreSQL LXC setup complete."
 
 sleep 3
 
-print_message "Run the benchmark NOW! The Interruptor will be launched in 10 minutes"
+# Add TMUX STUFF for benchmark call here
+print_message "$hammerDB_IP"
 
-./run_interruptor.sh
+sleep 3
+
+print_message "Detected the following hammerDB-Server IP Adress: $hammerDB_IP"
+
+tmux new-session -d -s BenchmarkSession
+
+tmux split-window -h
+
+tmux select-pane -t 0
+
+print_message "Interruptor Script is Running! 10 minutes left..."
+
+tmux send-keys -t BenchmarkSession:0.0 "sudo bash run_interruptor.sh" Enter
+
+tmux select-pane -t 1
+
+tmux send-keys -t BenchmarkSession:0.1 "ssh -t niklas@$hammerDB_IP \"cd /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc && sudo bash run_benchmark.sh 2>&1 | tee full_benchmark.log\"" Enter
+
+tmux attach-session -t BenchmarkSession
+
+  

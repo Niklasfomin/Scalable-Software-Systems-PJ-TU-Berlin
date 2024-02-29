@@ -22,14 +22,14 @@
         - "parse_transaction_times.sh"
         - "run_results.sh"
         
+
+        # TODO: EXCHANGE THE HAMMERDB SCRIPTS AGAINST THE OWN ONES
     - name: Copy adjusted hammerDB files to VM1
       copy:
         src: "{{ playbook_dir }}/Scripts/{{ item }}"
         dest: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc
       with_items:
-        - "pg_tprocc_buildschema_new.tcl"
         - "pg_tprocc_run_new.tcl"
-        - "pg_tprocc_deleteschema_new.tcl"
         - "run_benchmark.sh"
 
     - name: Copy adjusted hammerDB timeprofile module to VM1
