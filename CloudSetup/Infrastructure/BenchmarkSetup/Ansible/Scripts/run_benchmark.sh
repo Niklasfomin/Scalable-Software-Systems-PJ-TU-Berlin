@@ -52,16 +52,6 @@ for script in "${SCRIPTS[@]}"; do
     sed -i "s/localhost/$SUT_IP/g" "$script"
 done
 
-# Set correct amound of virtual users TODO check if that works!!!
-# sed -i "s/set vu [ numberOfCPUs ]//g" "pg_tprocc_buildschema.tcl"
-# sed -i "s/diset tpcc pg_num_vu $vu/diset tpcc pg_num_vu 1/g" "pg_tprocc_buildschema.tcl"
-
-# Set benchmark duration
-# sed -i "s/diset tpcc pg_rampup 2/diset tpcc pg_rampup 0/g" "pg_tprocc_run.tcl"
-# sed -i "s/diset tpcc pg_duration 10/diset tpcc pg_duration 15/g" "pg_tprocc_run.tcl" 
-
-# Set rampup duration to 0
-
 print_message "TCL scripts are updated successfully!"
 
 sleep 3
@@ -76,21 +66,21 @@ sed -i "s/xtprof/$TIME_PROF/g" "$TIME_FILE"
 
 print_message "etprof is successfully set as time profile."
 
-# <xt_unique_log_name>0 in case log is nowhere i need to substitute 0 with 1 using sed
 sleep 5
 
 cd ..
 
 export TMP=`pwd`/TMP
 mkdir -p $TMP
+sudo chmod -R 777 /opt/HammerDB-4.9/TMP/
+sudo touch pg_tprocc
 
 print_message "BUILD HAMMERDB SCHEMA"
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
 ./hammerdbcli auto ./scripts/tcl/postgres/tprocc/pg_tprocc_buildschema.tcl 
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
 
-# Put call for ressource monitor and interruptor here
-#ssh -t niklas@$SUT_IP "nohup sudo bash /opt/resource_monitor.sh > /dev/null 2>&1 & nohup sudo go run /opt/exhaustor.go > /dev/null 2>&1 & exit"
+print_message "Schema is build!"
 
 sleep 3
 

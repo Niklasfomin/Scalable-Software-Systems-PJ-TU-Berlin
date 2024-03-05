@@ -29,7 +29,23 @@ cleanup_firecracker() {
     echo "Firecracker VM cleanup is not implemented in this script yet."
 }
 
+cleanup_files() {
+    local docker_stats_file="docker_container_stats.csv"
+    local firecracker_stats_file="firecracker_stats.csv"
+    local lxc_stats_file="lxc_container_stats.csv"
+
+    echo "Checking and cleaning up stats files if they exist..."
+
+    [[ -f $docker_stats_file ]] && { echo "Removing $docker_stats_file"; sudo rm -f $docker_stats_file; }
+    [[ -f $firecracker_stats_file ]] && { echo "Removing $firecracker_stats_file"; sudo rm -f $firecracker_stats_file; }
+    [[ -f $lxc_stats_file ]] && { echo "Removing $lxc_stats_file"; sudo rm -f $lxc_stats_file; }
+}
+
+cleanup_log() {
+}
+
 main() {
+    cleanup_files
     cleanup_docker
     cleanup_lxc
     cleanup_firecracker

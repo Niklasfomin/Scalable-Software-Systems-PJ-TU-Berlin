@@ -19,7 +19,7 @@ PG_USER="postgres"
 PG_PWD="postgres"
 DB_NAME="postgres"
 DEFAULT_CONTAINER_NAME="pgcontainer"
-hammerDB_IP=$(cat hammerDB_server_ip.txt)
+hammerDB_IP=$(cat /opt/hammerDB_server_ip.txt)
 
 print_message "Starting PostgreSQL docker container..."
 
@@ -56,24 +56,3 @@ EOF
 
 print_message "PostgreSQL setup complete. Switch to the benchmark server."
 
-# sleep 3
-
-# print_message "$hammerDB_IP"
-
-# sleep 3
-
-# print_message "Detected the following hammerDB-Server IP Adress: $hammerDB_IP"
-
-#tmux new-session -d -s BenchmarkSession
-
-#tmux split-window -h
-
-#tmux select-pane -t 0
-
-# tmux send-keys -t BenchmarkSession:0.0 "sudo bash run_interruptor.sh" Enter
-
-#tmux select-pane -t 1
-
-#tmux send-keys -t BenchmarkSession:0.1 "ssh -t niklas@$hammerDB_IP \"cd /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc && sudo bash run_benchmark.sh 2>&1 | tee full_benchmark.log\"" Enter
-#ssh -t niklas@$hammerDB_IP "cd /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc && sudo bash run_benchmark.sh 2>&1 | tee full_benchmark.log"
-#tmux attach-session -t BenchmarkSession

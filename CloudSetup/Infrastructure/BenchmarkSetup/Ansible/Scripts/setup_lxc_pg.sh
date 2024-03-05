@@ -65,29 +65,5 @@ lxc config device add "$CONTAINER_NAME" pg_port"$PG_PORT" proxy listen=tcp:0.0.0
 
 print_message "PostgreSQL LXC setup complete."
 
-sleep 3
-
-# Add TMUX STUFF for benchmark call here
-print_message "$hammerDB_IP"
-
-sleep 3
-
-print_message "Detected the following hammerDB-Server IP Adress: $hammerDB_IP"
-
-tmux new-session -d -s BenchmarkSession
-
-tmux split-window -h
-
-tmux select-pane -t 0
-
-# print_message "Interruptor Script is Running! 10 minutes left..."
-
-# tmux send-keys -t BenchmarkSession:0.0 "sudo bash run_interruptor.sh" Enter
-
-tmux select-pane -t 1
-
-tmux send-keys -t BenchmarkSession:0.1 "ssh -t niklas@$hammerDB_IP \"cd /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc && sudo bash run_benchmark.sh 2>&1 | tee full_benchmark_2.log\"" Enter
-
-tmux attach-session -t BenchmarkSession
 
   
