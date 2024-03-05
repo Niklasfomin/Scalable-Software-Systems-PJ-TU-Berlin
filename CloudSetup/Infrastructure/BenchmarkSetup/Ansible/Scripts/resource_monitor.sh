@@ -6,7 +6,7 @@ lxc_stats_file="lxc_container_stats.csv"
 
 monitor_docker() {
     local container_id=$1
-    echo "Monitoring Docker container $container_id. Press Ctrl+C to stop."
+    echo "Monitoring Docker container $container_id."
 
     echo "Time,Container ID,CPU Usage (%),Memory Usage / Limit,Memory Usage (%)" > "$docker_stats_file"
 
@@ -24,7 +24,7 @@ monitor_lxd() {
 
     echo "Time,Container Name,CPU Usage (seconds),Memory Usage (current),Memory Usage (peak)" > "$lxc_stats_file"
 
-    echo "Monitoring LXD container $container_name. Press Ctrl+C to stop."
+    echo "Monitoring LXD container $container_name."
     while true; do
         
         local info=$(lxc info "$container_name" --resources)
@@ -56,7 +56,7 @@ detect_lxd() {
 
 monitor_firecracker() {
     echo "Time,CPU Usage (%),Memory Usage (KB),Memory Usage (%)" > "$firecracker_stats_file"
-    echo "Monitoring system resources. Press Ctrl+C to stop."
+    echo "Monitoring system resources."
     while true; do
         local current_time=$(date "+%Y-%m-%d %H:%M:%S")
         local cpu_usage=$(top -b -n 2 -d 1 | grep "Cpu(s)" | tail -n 1 | awk '{print 100 - $8}')

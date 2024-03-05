@@ -17,6 +17,7 @@ selection=$(dialog \
   "1" "Setup Docker PostgreSQL" \
   "2" "Setup LXC PostgreSQL" \
   "3" "Setup Firecracker" \
+  "4" "Clean the SUT Server" \ 
   2>&1 1>&3)
 exit_status=$?
 exec 3>&-
@@ -44,5 +45,8 @@ case $selection in
     ;;
   3)
     sudo bash setup_firecracker.sh
+    ;;
+  4) 
+    sudo bash cleanup.sh
     ;;
 esac

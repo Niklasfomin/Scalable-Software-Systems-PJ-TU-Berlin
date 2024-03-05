@@ -19,11 +19,8 @@
         dest: /opt/
         mode: '0755'
       with_items:
-        - "parse_transaction_times.sh"
         - "run_results.sh"
         
-
-        # TODO: EXCHANGE THE HAMMERDB SCRIPTS AGAINST THE OWN ONES
     - name: Copy adjusted hammerDB files to VM1
       copy:
         src: "{{ playbook_dir }}/Scripts/{{ item }}"
@@ -57,10 +54,15 @@
         state: present
         update_cache: yes
 
-    # - name: Delete pg_tprocc.sh script
-    #   file:
-    #     path: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc/pg_tprocc.sh
-    #     state: absent
+    - name: Delete pg_tprocc.sh script
+      file:
+        path: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc/pg_tprocc.sh
+        state: absent
+
+    - name: Delete pg_tprocc_run.tcl script
+      file:
+        path: /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc/pg_tprocc_run.tcl
+        state: absent
 
 - name: Setup Postgres Server with Docker, LXC and Golang env
   hosts: postgres
@@ -115,7 +117,7 @@
         - "cleanup.sh"
         - "setup_firecracker.sh"
         - "setup_fc_pgsql.sh"
-        - "runExperiment.sh"
+        - "wizard.sh"
     
     - name: Copy interruptor application to SUT
       copy:
