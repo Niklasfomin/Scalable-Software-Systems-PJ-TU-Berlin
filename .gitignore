@@ -40,3 +40,6 @@ terraform.rc
 *.key
 secrets.*
 credentials.*
+
+# Ignore my virtual env
+sswsenv/

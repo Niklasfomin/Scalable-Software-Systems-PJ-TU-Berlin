@@ -1,0 +1,4 @@
+matplotlib
+ruptures
+pandas
+numpy
