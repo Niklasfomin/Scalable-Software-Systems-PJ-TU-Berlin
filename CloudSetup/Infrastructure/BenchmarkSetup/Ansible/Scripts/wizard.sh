@@ -19,7 +19,7 @@ while true; do
   --menu "Please select:" 15 50 6 \
   "1" "Setup Docker PostgreSQL" \
   "2" "Setup LXC PostgreSQL" \
-  "3" "Setup Firecracker" \
+  "3" "Setup QEMU" \
   "4" "Run Benchmark" \
   "5" "Clean the SUT Server" \
   "6" "Process benchmark results" \
@@ -53,7 +53,7 @@ while true; do
       ;;
     3)
       echo "Launching SUT..."
-      ssh -t niklas@$SUT_IP "sudo bash setup_firecracker.sh"
+      ssh -t niklas@$SUT_IP "sudo bash setup_qemu.sh"
       echo "SUT running!"
       ;;
     4)

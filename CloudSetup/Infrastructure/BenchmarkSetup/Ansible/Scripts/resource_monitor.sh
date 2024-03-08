@@ -54,17 +54,39 @@ detect_lxd() {
     lxc list -c ns --format csv | grep ",RUNNING" | cut -d',' -f1 | head -n 1
 }
 
-monitor_firecracker() {
-    echo "Time,CPU Usage (%),Memory Usage (KB),Memory Usage (%)" > "$firecracker_stats_file"
-    echo "Monitoring system resources."
+# monitor_firecracker() {
+#     echo "Time,CPU Usage (%),Memory Usage (KB),Memory Usage (%)" > "$firecracker_stats_file"
+#     echo "Monitoring system resources."
+#     while true; do
+#         local current_time=$(date "+%Y-%m-%d %H:%M:%S")
+#         local cpu_usage=$(top -b -n 2 -d 1 | grep "Cpu(s)" | tail -n 1 | awk '{print 100 - $8}')
+#         local mem_usage=$(free | grep Mem | awk '{print $3}')
+#         local mem_total=$(free | grep Mem | awk '{print $2}')
+#         local mem_usage_perc=$(awk "BEGIN {print ($mem_usage/$mem_total)*100}")
+        
+#         echo "$current_time,$cpu_usage,$mem_usage,$mem_usage_perc" >> "$resource_stats_file"
+#         sleep 2  
+#     done
+# }
+
+monitor_qemu() {
+    echo "Time,CPU Usage (%),Memory Usage (KB),Memory Usage (%)" > "$qemu_stats_file"
+    local qemu_pid=$(pgrep qemu-system)
+
+    if [[ -z "$qemu_pid" ]]; then
+        echo "No QEMU VM detected."
+        return
+    fi
+
+    echo "Monitoring QEMU VM."
     while true; do
         local current_time=$(date "+%Y-%m-%d %H:%M:%S")
-        local cpu_usage=$(top -b -n 2 -d 1 | grep "Cpu(s)" | tail -n 1 | awk '{print 100 - $8}')
-        local mem_usage=$(free | grep Mem | awk '{print $3}')
+        local cpu_usage=$(top -b -n 2 -d 1 -p "$qemu_pid" | grep "qemu-system" | tail -n 1 | awk '{print $9}')
+        local mem_usage=$(pmap "$qemu_pid" | tail -n 1 | awk '/total/ {print $2}')
         local mem_total=$(free | grep Mem | awk '{print $2}')
-        local mem_usage_perc=$(awk "BEGIN {print ($mem_usage/$mem_total)*100}")
-        
-        echo "$current_time,$cpu_usage,$mem_usage,$mem_usage_perc" >> "$resource_stats_file"
+        local mem_usage_perc=$(awk "BEGIN {print ($mem_usage*1024/$mem_total)*100}")
+
+        echo "$current_time,$cpu_usage,$mem_usage,$mem_usage_perc" >> "$qemu_stats_file"
         sleep 2  
     done
 }
@@ -84,7 +106,7 @@ detect_and_monitor() {
         return
     fi
 
-    echo "No Docker or LXD containers detected, so Firecracker must be running."
+    echo "No Docker or LXD containers detected, so QEMU must be running."
     monitor_firecracker
 }
 

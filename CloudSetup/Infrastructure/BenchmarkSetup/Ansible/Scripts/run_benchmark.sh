@@ -52,6 +52,8 @@ for script in "${SCRIPTS[@]}"; do
     sed -i "s/localhost/$SUT_IP/g" "$script"
 done
 
+#sed -i "s/127.0.0.1/$SUT_IP/g" "
+
 print_message "TCL scripts are updated successfully!"
 
 sleep 3
@@ -98,7 +100,7 @@ sleep 5
 
 echo "RUN HAMMERDB TEST"
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
-./hammerdbcli auto ./scripts/tcl/postgres/tprocc/pg_tprocc_run.tcl 
+./hammerdbcli auto ./scripts/tcl/postgres/tprocc/pg_tprocc_run_new.tcl 
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-"
 echo "DROP HAMMERDB SCHEMA"
 ./hammerdbcli auto ./scripts/tcl/postgres//tprocc/pg_tprocc_deleteschema.tcl

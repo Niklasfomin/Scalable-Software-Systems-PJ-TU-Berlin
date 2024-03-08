@@ -13,11 +13,11 @@
         dest: /opt/
         remote_src: yes
 
-    - name: Install dialog
-      apt:
-        name: dialog
-        state: present
-    
+    # - name: Install dialog
+    #   apt:
+    #     name: dialog
+    #     state: present
+  
     - name: Copy scripts to VM1
       copy:
         src: "{{ playbook_dir }}/Scripts/{{ item }}"
@@ -25,6 +25,7 @@
         mode: '0755'
       with_items:
         - "run_results.sh"
+        - "wizard.sh" # Fix location.
         
     - name: Copy adjusted hammerDB files to VM1
       copy:
@@ -121,9 +122,8 @@
         - "run_interruptor.sh"
         - "resource_monitor.sh"
         - "cleanup.sh"
-        - "setup_firecracker.sh"
-        - "setup_fc_pgsql.sh"
-        - "wizard.sh"
+        - "setup_qemu.sh"
+        - "setup_qemu_pg.sh"
     
     - name: Copy interruptor application to SUT
       copy:
