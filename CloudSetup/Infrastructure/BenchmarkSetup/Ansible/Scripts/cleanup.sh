@@ -41,8 +41,8 @@ cleanup_files() {
     [[ -f $lxc_stats_file ]] && { echo "Removing $lxc_stats_file"; sudo rm -f $lxc_stats_file; }
 }
 
-cleanup_log() {
-}
+# cleanup_log() {
+# }
 
 main() {
     cleanup_files
