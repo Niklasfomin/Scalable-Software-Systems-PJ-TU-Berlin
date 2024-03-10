@@ -8,15 +8,23 @@ monitor_docker() {
     local container_id=$1
     echo "Monitoring Docker container $container_id."
 
-    echo "Time,Container ID,CPU Usage (%),Memory Usage / Limit,Memory Usage (%)" > "$docker_stats_file"
+    echo "Time,Container ID,CPU Usage (%),Memory Usage" > "$docker_stats_file"
 
     while true; do
+        local start_time=$(date +%s)
         local current_time=$(date "+%Y-%m-%d %H:%M:%S")
-        local stats=$(docker stats --no-stream --format "{{.ID}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}}" $container_id)
+        
+        local stats=$(docker stats --no-stream --format "{{.ID}},{{.CPUPerc}},{{.MemUsage}}" $container_id | awk -F, '{gsub(/[\r\n]+$/, "", $3); print $1","$2","$3}')
+        
         echo "$current_time,$stats" >> "$docker_stats_file"
-        sleep 2  
+        
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
+        local sleep_duration=$((2 - duration > 0 ? 2 - duration : 0))
+        sleep $sleep_duration
     done
 }
+
 
 
 monitor_lxd() {

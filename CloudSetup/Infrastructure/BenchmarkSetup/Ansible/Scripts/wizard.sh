@@ -48,7 +48,7 @@ while true; do
       ;;
     2)
       echo "Launching SUT..."
-      ssh -t niklas@$SUT_IP "sudo bash /opt/setup_lxc_pg.sh > /tmp/setup_lxc_pg.log 2>&1 & sleep 20; exit"
+      ssh -t niklas@$SUT_IP "sudo bash /opt/setup_lxc_pg.sh > /tmp/setup_lxc_pg.log 2>&1 & sleep 60; exit"
       echo "SUT running!"
       ;;
     3)
