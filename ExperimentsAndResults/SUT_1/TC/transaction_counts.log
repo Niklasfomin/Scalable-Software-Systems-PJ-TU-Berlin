@@ -123,3 +123,13 @@ TRANSACTION COUNT
     "2024-03-08 22:13:33": "7536"
   }}
 
+HAMMERDB RESULT
+[
+  "65EB88DB613203E263737333",
+  "2024-03-08 21:53:31",
+  "1 Active Virtual Users configured",
+  "TEST RESULT : System achieved 3686 NOPM from 8540 PostgreSQL TPM"
+]
+
+
+Connection to 35.225.245.122 closed.
