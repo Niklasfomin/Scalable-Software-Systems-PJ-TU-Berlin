@@ -76,9 +76,9 @@ package provide etprof 1.1
                 incr ::etprof::cumulative($name) $cum_elapsed
 #intermediate percentile measurements
         if {![string match {::tcl*} $name]} {
-#add to list of elapsed times per name for 2 seconds
+#add to list of elapsed times per name for 10 seconds
                 lappend ::etprof::pctiles($name) $elapsed
-                if {[ expr $seconds % 2 ] eq 0 } {
+                if {[ expr $seconds % 10 ] eq 0 } {
                 if { $::etprof::iterations != $seconds } {
                 set ::etprof::iterations $seconds
 #calculate and print percentiles
