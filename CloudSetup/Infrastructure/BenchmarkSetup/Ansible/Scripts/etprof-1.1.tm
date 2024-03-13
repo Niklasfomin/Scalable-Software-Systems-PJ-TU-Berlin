@@ -76,9 +76,9 @@ package provide etprof 1.1
                 incr ::etprof::cumulative($name) $cum_elapsed
 #intermediate percentile measurements
         if {![string match {::tcl*} $name]} {
-#add to list of elapsed times per name for 10 seconds
+#add to list of elapsed times per name for 2 seconds
                 lappend ::etprof::pctiles($name) $elapsed
-                if {[ expr $seconds % 10 ] eq 0 } {
+                if {[ expr $seconds % 2 ] eq 0 } {
                 if { $::etprof::iterations != $seconds } {
                 set ::etprof::iterations $seconds
 #calculate and print percentiles
@@ -236,7 +236,7 @@ return $pctile
 }
 
 proc ::etprof::printPercentiles { seconds } {
-puts "|PERCENTILES [clock format [ expr $::etprof::timersecs + $seconds - 10 ] -format {%Y-%m-%d %H:%M:%S}] to [clock format [ expr $::etprof::timersecs + $seconds ] -format {%Y-%m-%d %H:%M:%S}]"
+puts "|PERCENTILES [clock format [ expr $::etprof::timersecs + $seconds - 2 ] -format {%Y-%m-%d %H:%M:%S}] to [clock format [ expr $::etprof::timersecs + $seconds ] -format {%Y-%m-%d %H:%M:%S}]"
      foreach {key val} [array get ::etprof::exclusive] {
 if {[string match {::tcl*} $key]||[string match {::msgcat*} $key]||[string match {::etprof*} $key]} {
                 ;
