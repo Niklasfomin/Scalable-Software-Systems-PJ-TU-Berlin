@@ -8,7 +8,6 @@ print_message() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
 
-# Function to get container name by image name
 get_container_name() {
    sudo docker ps --format '{{.Names}}' --filter ancestor="$1"
 }

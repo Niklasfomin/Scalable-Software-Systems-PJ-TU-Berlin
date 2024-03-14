@@ -1,177 +1,199 @@
-<picture>
-   <source media="(prefers-color-scheme: dark)" srcset="docs/images/fc_logo_full_transparent-bg_white-fg.png">
-   <source media="(prefers-color-scheme: light)" srcset="docs/images/fc_logo_full_transparent-bg.png">
-   <img alt="Firecracker Logo Title" width="750" src="docs/images/fc_logo_full_transparent-bg.png">
-</picture>
+# Scalable Software Systems Project WS23/24 - TU Berlin@3S
 
-Our mission is to enable secure, multi-tenant, minimal-overhead execution of
-container and function workloads.
+![experiment-setup](./Docs/img/experiment_setup-architecture.drawio.png)
 
-Read more about the Firecracker Charter [here](CHARTER.md).
+This project presents an initial stage experiment framework to measure interference during duet benchmarking in cloud environments. The repository is accompanied by a report that furtherly explains the context of the implementation.
 
-## What is Firecracker?
+- [Click to read the Paper.](./Docs/Paper/464308_pj_ssws_report.pdf)
 
-Firecracker is an open source virtualization technology that is purpose-built
-for creating and managing secure, multi-tenant container and function-based
-services that provide serverless operational models. Firecracker runs workloads
-in lightweight virtual machines, called microVMs, which combine the security and
-isolation properties provided by hardware virtualization technology with the
-speed and flexibility of containers.
+**Disclaimer**
+This implementation made use of HammerDB:
+- https://www.hammerdb.com/docs/
 
-## Overview
+## Project Structure
 
-The main component of Firecracker is a virtual machine monitor (VMM) that uses
-the Linux Kernel Virtual Machine (KVM) to create and run microVMs. Firecracker
-has a minimalist design. It excludes unnecessary devices and guest-facing
-functionality to reduce the memory footprint and attack surface area of each
-microVM. This improves security, decreases the startup time, and increases
-hardware utilization. Firecracker has also been integrated in container
-runtimes, for example
-[Kata Containers](https://github.com/kata-containers/documentation/wiki/Initial-release-of-Kata-Containers-with-Firecracker-support)
-and [Weaveworks Ignite](https://github.com/weaveworks/ignite).
+**Directory:**
 
-Firecracker was developed at Amazon Web Services to accelerate the speed and
-efficiency of services like [AWS Lambda](https://aws.amazon.com/lambda/) and
-[AWS Fargate](https://aws.amazon.com/fargate/). Firecracker is open sourced
-under [Apache version 2.0](LICENSE).
+```CloudSetup/Infrastructure/BenchmarkSetup/Scripts```
 
-To read more about Firecracker, check out
-[firecracker-microvm.io](https://firecracker-microvm.github.io).
+- `cleanup.sh`: Detects the present SUT on your server and deletes it. Data will be lost!
+- `resource_monitor.sh`: Detects the present SUT and monitors CPU and Memory usage in 2second intervals.
+- `run_benchmark.sh`: Main execution script. Verifys connection with SUT and triggers HammerDB CLI to run the benchmark. IP Adresses are passed by Ansible to the host. This script writes these adresses into HammerDBs tcl files. When encountering connectivity issues double check the IP-Adresses contained in /opt/postgres-server-ip.txt
+- `run_interruptor`: Triggers the Interruptor application exhaustor.go to be executed with a 5 minute delay.
+- `setup_docker_pg.sh`: Launches a docker container with the latest postgres server.
+- `setup_lxc_pg.sh`: Launches a linux container with a postgres-server.
+- `wizard.sh`: Serves as a Wizard to use the experiment setup.
+- `etprof-1.1.tmp`: Contains the adjusted tcl implementation of HammerDBs time profiling module. 
+- `pg_tprocc_run_new.tcl`: Contains the adjusted HammerDB tcl implementation to preset a different configuration than default.
 
-## Getting Started
+**Directory:**
 
-To get started with Firecracker, download the latest
-[release](https://github.com/firecracker-microvm/firecracker/releases) binaries
-or build it from source.
+```CloudSetup/Infrastructure/BenchmarkSetup/InterruptorApplication```
 
-You can build Firecracker on any Unix/Linux system that has Docker running (we
-use a development container) and `bash` installed, as follows:
+-`exhaustor.go`: Contains the implementation of a resource-intensive program.
 
-```bash
-git clone https://github.com/firecracker-microvm/firecracker
-cd firecracker
-tools/devtool build
-toolchain="$(uname -m)-unknown-linux-musl"
+**Directory:**
+
+```CloudSetup/ExperimentsAndResults```
+
+This directory holds the data and the notebooks for analyzing the benchmark data. The notebooks follow a strict structure for preprocessing, plotting and applying change point detection algorithm per metric.
+
+### Dependencies
+
+Ensure you have the following requirements:
+   - [Google Cloud project](https://cloud.google.com/resource-manager/docs/creating-managing-projects#creating_a_project).
+   - Shell environment with `gcloud`, `git`, `terraform` and `python3, pyhton3-pip` as well as`Jupyter-notebook`available on your system.
+
+1. Clone the repository.
+
+```sh
+git clone https://github.com/Niklasfomin/Scalable-Software-Systems-PJ-TU-Berlin.git
+cd Scalable-Software-Systems-PJ-TU-Berlin
 ```
 
-The Firecracker binary will be placed at
-`build/cargo_target/${toolchain}/debug/firecracker`. For more information on
-building, testing, and running Firecracker, go to the
-[quickstart guide](docs/getting-started.md).
+2. Setup your gcloud environment
+```sh
+export PROJECT_ID=<PROJECT_ID>
+export REGION=<REGION>
+```
 
-The overall security of Firecracker microVMs, including the ability to meet the
-criteria for safe multi-tenant computing, depends on a well configured Linux
-host operating system. A configuration that we believe meets this bar is
-included in [the production host setup document](docs/prod-host-setup.md).
+Substitute `<PROJECT_ID>` with the ID of your Google Cloud project.
 
-## Contributing
+**Prerequesite**
 
-Firecracker is already running production workloads within AWS, but it's still
-Day 1 on the journey guided by our [mission](CHARTER.md). There's a lot more to
-build and we welcome all contributions.
+Because the SUT-server should run virtual machines in the future nested virtualization is required. Follow the steps to create a base image:
 
-To contribute to Firecracker, check out the development setup section in the
-[getting started guide](docs/getting-started.md) and then the Firecracker
-[contribution guidelines](CONTRIBUTING.md).
+```
+gcloud compute instances create temp-image-base --image-family=projects/ubuntu-os-cloud/global/images/family/ubuntu-2004-lts --zone=<ZONE>
 
-## Releases
+gcloud compute instances stop temp-image-base --zone=us-central1-b
 
-New Firecracker versions are released via the GitHub repository
-[releases](https://github.com/firecracker-microvm/firecracker/releases) page,
-typically every two or three months. A history of changes is recorded in our
-[changelog](CHANGELOG.md).
+gcloud compute images create nested-vm-image \
+  --source-disk=temp-image-base --source-disk-zone=<ZONE> \
+  --licenses="https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
 
-The Firecracker release policy is detailed [here](docs/RELEASE_POLICY.md).
+```
 
-## Design
+## User Guide
 
-Firecracker's overall architecture is described in
-[the design document](docs/design.md).
+To deploy and run the experiment setup follow the instructions:
 
-## Features & Capabilities
+**1. Navigate to Scalable-Software-Systems-PJ-TU-Berlin/CloudSetup/Infrastructure/Terraform**
 
-Firecracker consists of a single micro Virtual Machine Manager process that
-exposes an API endpoint to the host once started. The API is
-[specified in OpenAPI format](src/firecracker/swagger/firecracker.yaml). Read
-more about it in the [API docs](docs/api_requests).
+Make sure to have an activated Google SVA (service-account) with an activated key saved on your localhost.
 
-The **API endpoint** can be used to:
+Within the `Terraform` directory create a new file `terraform.tfvars`.
 
-- Configure the microvm by:
-  - Setting the number of vCPUs (the default is 1).
-  - Setting the memory size (the default is 128 MiB).
-  - Configuring a [CPU template](docs/cpu_templates/cpu-templates.md).
-- Add one or more network interfaces to the microVM.
-- Add one or more read-write or read-only disks to the microVM, each represented
-  by a file-backed block device.
-- Trigger a block device re-scan while the guest is running. This enables the
-  guest OS to pick up size changes to the block device's backing file.
-- Change the backing file for a block device, before or after the guest boots.
-- Configure rate limiters for virtio devices which can limit the bandwidth,
-  operations per second, or both.
-- Configure the logging and metric system.
-- `[BETA]` Configure the data tree of the guest-facing metadata service. The
-  service is only available to the guest if this resource is configured.
-- Add a [vsock socket](docs/vsock.md) to the microVM.
-- Add a [entropy device](docs/entropy.md) to the microVM.
-- Start the microVM using a given kernel image, root file system, and boot
-  arguments.
-- \[x86_64 only\] Stop the microVM.
+Add the following lines to this file and save it:
 
-**Built-in Capabilities**:
+```
+credentials_file = "path/to/your/credentials_file.json"
+project = "<project_id_here>"
+```
 
-- Demand fault paging and CPU oversubscription enabled by default.
-- Advanced, thread-specific seccomp filters for enhanced security.
-- [Jailer](docs/jailer.md) process for starting Firecracker in production
-  scenarios; applies a cgroup/namespace isolation barrier and then drops
-  privileges.
+Within the `Terraform` directory create a new file `ansible.cfg`
 
-## Tested platforms
+Fill in the values according to your configuration:
 
-We test all combinations of:
+```
+[defaults]
+inventory = ./hosts.ini
+private_key_file = path/to/your/gcloud/private-key
+remote_user = your_username
+host_key_checking = False
+```
 
-| Instance  | Host OS & Kernel  | Guest Rootfs | Guest Kernel |
-| :-------- | :---------------- | :----------- | :----------- |
-| c5n.metal | al2    linux_4.14 | ubuntu 22.04 | linux_4.14   |
-| m5n.metal | al2    linux_5.10 |              | linux_5.10   |
-| m6i.metal | al2023 linux_6.1  |              |              |
-| m6a.metal |                   |              |              |
-| m6g.metal |                   |              |              |
-| m7g.metal |                   |              |              |
+**2. Execute the following commands to allow terraform provision the infrastructure:**
 
-## Known issues and Limitations
+```
+terraform init
+terraform apply (make sure to always manually answer the prompt with "yes"!)
+```
 
-- The `pl031` RTC device on aarch64 does not support interrupts, so guest
-  programs which use an RTC alarm (e.g. `hwclock`) will not work.
+Terraform will create the infrastructure and execute an Ansible Playbook on the both servers. The software rollout can be viewed or extended in the ```playbook.yaml``` file in the ```CloudSetup/Infrastructure/BenchmarkSetup/Ansible``` directory.
 
-## Performance
+Monitor the output in the terminal to verify the infrastructure provisoned by Terraform.
 
-Firecracker's performance characteristics are listed as part of the
-[specification documentation](SPECIFICATION.md). All specifications are a part
-of our commitment to supporting container and function workloads in serverless
-operational models, and are therefore enforced via continuous integration
-testing.
+**3. Connect to both servers using ```ssh```:**
 
-## Policy for Security Disclosures
+```
+gcloud compute ssh --zone "<ZONE>" "hammerdb2-instance" --project "<PROJECT>"
+gcloud compute ssh --zone "<ZONE" "psql-server" --project "<PROJECT>"
+```
 
-The security of Firecracker is our top priority. If you suspect you have
-uncovered a vulnerability, contact us privately, as outlined in our
-[security policy document](SECURITY.md); we will immediately prioritize your
-disclosure.
+**4. Create a new keypair on the ```hammerdb2-instance``` to enable access to the ```psql-server```:**
 
-## FAQ & Contact
+```
+ssh-keygen -t rsa -b 2048
+```
 
-Frequently asked questions are collected in our [FAQ doc](FAQ.md).
+Enter all the three system prompts and copy the created public key into the ```authorized_keys``` file on the ```psql-server```.
 
-You can get in touch with the Firecracker community in the following ways:
 
-- Security-related issues, see our [security policy document](SECURITY.md).
-- Chat with us on our
-  [Slack workspace](https://join.slack.com/t/firecracker-microvm/shared_invite/zt-1zlb87h4z-NED1rBhVqOQ1ygBgT76wlg)
-  _Note: most of the maintainers are on a European time zone._
-- Open a GitHub issue in this repository.
-- Email the maintainers at
-  [firecracker-maintainers@amazon.com](mailto:firecracker-maintainers@amazon.com).
+**5. Run the Experiment Wizard on the ```hammerdb2-instance```:**
 
-When communicating within the Firecracker community, please mind our
-[code of conduct](CODE_OF_CONDUCT.md).
+```
+cd /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc
+bash wizard.sh
+```
+
+Select the desired SUT setup ```option 1 or 2```. In case of unexpected behavior ssh into the SUT-server using the command above.
+
+Navigate to ```/tmp``` and examine the output of the logs. Depending on the action you took in the Wizard the according file .log file will be displayed.
+
+As soon the Wizard window shows up again the SUT is setup and ready for the benchmark run.
+
+Choose ```option 3``` to run the benchmark.
+
+Initially the terminal will output information on the connectivity of the SUT-server. Carefully observe the terminal logs for potentially trouble-shooting.
+
+If the connection is established successfully HammerDB will build the database schema now. This takes approximately 5 Minutes.
+
+**6. Choose to run the benchmark with or without the Interruptor Application to simulate realistic workloads on the cloud-server.**
+
+After the schema is build you will get prompted with a ```y/n question```. Make your choice.
+
+Simultaneously the Wizard will start monitoring the SUT. You'll find a file ```/opt/<SUT>_container_stats.csv``` on the ```psql-server```.
+
+HammerDB will now run transacitonal workloads on your SUT. Expected Output with etprof time-profile:
+
+```
+Vuser 2:|payment|MIN-1205|P50%-1529.5|P95%-2671|P99%-185088|MAX-244178|SAMPLES-107
+Vuser 2:|delivery|MIN-3166|P50%-3898|P95%-4307|P99%-95246|MAX-95246|SAMPLES-14
+Vuser 2:|slev|MIN-1843|P50%-2004|P95%-2338|P99%-2338|MAX-2338|SAMPLES-7
+Vuser 2:|ostat|MIN-532|P50%-758|P95%-869|P99%-978|MAX-978|SAMPLES-16
+Vuser 2:|gettimestamp|MIN-3|P50%-4|P95%-5|P99%-7|MAX-18|SAMPLES-255
+Vuser 2:+-----------------+--------------+------+--------+--------------+--------------+
+
+```
+
+**7. Process the benchmark results:**
+
+Once you are returned to the Experiment Wizard window the benchmark run has concluded.
+
+Choose ```option 5``` to process the benchmark results. The time series is now accessible in the file ```filtered_transaction_data.log```
+
+**8. Download the results to your local machine for analysis:**
+
+```
+gcloud compute scp --zone "<ZONE>" "hammerdb2-instance:/opt/HammerDB-4.9/scripts/tcl/postgres/tprocc/filtered_transaction_data.log" "path/of/your/choice"
+
+gcloud compute scp --zone "<Zone>" "psql-server:/opt/<SUT>_container_stats.csv" "path/of/your/choice"
+```
+
+**9. Clean the SUT-Server!**
+
+Choose ```option 4``` to clean the SUT-Server. This will prepare the cloud-server for another run using a different SUT.
+
+Note: If you pause your cloud-server and restart them you will run into connectivity issues due to IP-Adress-Changes. 
+
+In that case: ```cd /opt/HammerDB-4.9/scripts/tcl/postgres/tprocc``` and modify the IP-adressess in the following files ```pg_tprocc_run_new.tcl pg_tprocc_buildschema.tcl pg_tprocc_deleteschema.tcl```.
+
+**10. Analyse the data:**
+
+The  ```jupyter-notebook``` follows a fixed processing pipeline from data extraction to change point detection. Make sure to insert the files accessible by the  ```jupyter-cells.```
+Note however that the notebook is meant to be continously used, modified and enhanced. Therefore the cells hold some redundant processng to decouple the processing steps. Keep this in mind when analysing your own data. Nevertheless in the future a more generic notebook might be provided.
+
+## Future Work
+
+The repository also contains more scripts and files than mentioned in the Project Structure. This is meant for setting up more SUTs such as ```AWS Firecracker, QEMU KVM, LXD VM etc...``` but is not yet present in the ExperimentsAndResults folder.

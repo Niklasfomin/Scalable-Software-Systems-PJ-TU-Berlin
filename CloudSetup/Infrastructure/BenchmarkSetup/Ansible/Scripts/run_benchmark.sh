@@ -10,7 +10,6 @@ print_message() {
 
 # Variables
 SUT_IP=$(cat /opt/postgres_server_ip.txt)
-#SCRIPTS_DIR="HammerDB-4.9/scripts/tcl/postgres/tprocc/"
 SCRIPTS=("pg_tprocc_buildschema.tcl" "pg_tprocc_deleteschema.tcl" "pg_tprocc_run_new.tcl")
 TIME_DIR=" ../../../../config"
 TIME_FILE="generic.xml"
@@ -51,8 +50,6 @@ for script in "${SCRIPTS[@]}"; do
     print_message "Updating $script with SUT_IP: $SUT_IP"
     sed -i "s/localhost/$SUT_IP/g" "$script"
 done
-
-#sed -i "s/127.0.0.1/$SUT_IP/g" "
 
 print_message "TCL scripts are updated successfully!"
 

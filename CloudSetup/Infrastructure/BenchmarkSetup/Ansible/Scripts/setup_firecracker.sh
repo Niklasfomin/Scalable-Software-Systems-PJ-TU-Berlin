@@ -52,7 +52,6 @@ sleep 4
 
 tmux resize-pane -t FirecrackerVM:Setup -L 5
 tmux select-pane -t FirecrackerVM:Setup.0
-# Path for fc pgsql needs to be adjusted in playbook or here
 tmux send-keys -t FirecrackerVM:Setup.0 'scp -i ~/.ssh/hacker /opt/setup_fc_pgsql.sh alpine@172.16.0.2:~/' Enter 
 tmux send-keys -t FirecrackerVM:Setup.0 'ssh -i ~/.ssh/hacker alpine@172.16.0.2' Enter
 tmux send-keys -t FirecrackerVM:Setup.0 'chmod +x setup_fc_pgsql.sh' Enter

@@ -2,6 +2,16 @@
   hosts: hammerdb
   become: yes
   tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install dialog
+      apt:
+        name: dialog
+        state: present
+
     - name: Download and install HammerDB
       get_url:
         url: https://github.com/TPC-Council/HammerDB/releases/download/v4.9/HammerDB-4.9-Linux.tar.gz
@@ -12,11 +22,6 @@
         src: /tmp/hammerdb.tar.gz
         dest: /opt/
         remote_src: yes
-
-    # - name: Install dialog
-    #   apt:
-    #     name: dialog
-    #     state: present
   
     - name: Copy scripts to VM1
       copy:
@@ -25,7 +30,6 @@
         mode: '0755'
       with_items:
         - "run_results.sh"
-        - "wizard.sh" # Fix location.
         
     - name: Copy adjusted hammerDB files to VM1
       copy:
@@ -34,6 +38,7 @@
       with_items:
         - "pg_tprocc_run_new.tcl"
         - "run_benchmark.sh"
+        - "wizard.sh"
 
     - name: Copy adjusted hammerDB timeprofile module to VM1
       copy:
@@ -90,11 +95,6 @@
         name: qemu-kvm
         state: present
 
-    - name: Install dialog
-      apt:
-        name: dialog
-        state: present
-
     - name: Install Golang
       apt:
         name: golang
@@ -122,8 +122,6 @@
         - "run_interruptor.sh"
         - "resource_monitor.sh"
         - "cleanup.sh"
-        - "setup_qemu.sh"
-        - "setup_qemu_pg.sh"
     
     - name: Copy interruptor application to SUT
       copy:

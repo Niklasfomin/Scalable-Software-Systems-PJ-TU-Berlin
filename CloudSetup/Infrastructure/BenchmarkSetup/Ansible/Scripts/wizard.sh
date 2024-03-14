@@ -16,13 +16,12 @@ while true; do
   --title "Select SUT Setup Script" \
   --clear \
   --cancel-label "Exit" \
-  --menu "Please select:" 15 50 6 \
+  --menu "Please select:" 15 50 5 \
   "1" "Setup Docker PostgreSQL" \
   "2" "Setup LXC PostgreSQL" \
-  "3" "Setup QEMU" \
-  "4" "Run Benchmark" \
-  "5" "Clean the SUT Server" \
-  "6" "Process benchmark results" \
+  "3" "Run Benchmark" \
+  "4" "Clean the SUT Server" \
+  "5" "Process benchmark results" \
   2>&1 1>&3)
   exit_status=$?
   exec 3>&-
@@ -52,20 +51,15 @@ while true; do
       echo "SUT running!"
       ;;
     3)
-      echo "Launching SUT..."
-      ssh -t niklas@$SUT_IP "sudo bash setup_qemu.sh"
-      echo "SUT running!"
-      ;;
-    4)
       echo "Run Experiment"
       bash run_benchmark.sh 2>&1 | tee full_benchmark.log
       ;;
-    5)
+    4)
       echo "Cleaning the SUT Server..." 
       ssh -t niklas@$SUT_IP "sudo bash /opt/cleanup.sh > /tmp/cleanup.log 2>&1 & sleep 20; exit"
       echo "No SUTs running!"
       ;;
-    6) 
+    5) 
       echo "Extracting Benchmark results..."
       awk '/PERCENTILES/,/FIN on/{print}' full_benchmark.log > filtered_transaction_data.log
       ;;
