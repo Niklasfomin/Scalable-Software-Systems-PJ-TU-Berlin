@@ -14,15 +14,15 @@ This implementation made use of HammerDB:
 
 **Directory:**
 
-```CloudSetup/Infrastructure/BenchmarkSetup/Scripts```
+```CloudSetup/Infrastructure/BenchmarkSetup/Ansible/Scripts```
 
 - `cleanup.sh`: Detects the present SUT on your server and deletes it. Data will be lost!
 - `resource_monitor.sh`: Detects the present SUT and monitors CPU and Memory usage in 2second intervals.
 - `run_benchmark.sh`: Main execution script. Verifys connection with SUT and triggers HammerDB CLI to run the benchmark. IP Adresses are passed by Ansible to the host. This script writes these adresses into HammerDBs tcl files. When encountering connectivity issues double check the IP-Adresses contained in /opt/postgres-server-ip.txt
-- `run_interruptor`: Triggers the Interruptor application exhaustor.go to be executed with a 5 minute delay.
+- `run_interruptor.sh`: Triggers the Interruptor application exhaustor.go to be executed with a 5 minute delay.
 - `setup_docker_pg.sh`: Launches a docker container with the latest postgres server.
 - `setup_lxc_pg.sh`: Launches a linux container with a postgres-server.
-- `wizard.sh`: Serves as a Wizard to use the experiment setup.
+- `wizard.sh`: Serves as the user interface for the benchmark experiments.
 - `etprof-1.1.tmp`: Contains the adjusted tcl implementation of HammerDBs time profiling module. 
 - `pg_tprocc_run_new.tcl`: Contains the adjusted HammerDB tcl implementation to preset a different configuration than default.
 
